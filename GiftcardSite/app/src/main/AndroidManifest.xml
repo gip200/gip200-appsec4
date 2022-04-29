@@ -9,6 +9,16 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION"/>
 
+    <!-- define permission -->
+    <permission
+        android:protectionLevel="signature"
+        android:name="com.example.giftcardsite.MYPERMISSION"/>
+
+    <activity
+        android:name=".ProductScrollingActivity"
+        android:label="@string/title_activity_scrolling"
+        android:theme="@style/Theme.GiftcardSite.NoActionBar"
+        android:permission="com.example.giftcardsite.MYPERMISSION">
 
 
     <application

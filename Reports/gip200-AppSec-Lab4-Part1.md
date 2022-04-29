@@ -18,6 +18,14 @@ As you may remember from class, Android uses Intents to facilitate inter-process
 Intents, when not handled correctly, can cause problems. Take a look at the code on lines 69 to 73 of  `SecondFragment.kt`  and lines 68 to 70 of  `ThirdFragment.kt`. These are two different ways of handling intents. For this portion of the assignment, you should create a text file, called difference.txt, which answers the following questions in 3 sentences or less.
 
 1.  What are the two types of Intents?
+
+Explitcit Intents specify which application or component will satisfy the intent either by supplying the target app's package name or a fully-qualify component class name.
+
+Implicit Intents does not name a specific component but instead declare a general action to perform which allows a component from another app to handle it.
+
+To simply put, when an application defines its target component in an intent, it is an explicit intent. When the application does not name a target component, it is an implicit intent.
+
+
 2.  Which of the two types of Intents is more secure?
 3.  What type of Intent is shown on lines 69 to 73 of  [SecondFragment.kt]
 4.  What type of Intent is shown on lines 68 to 70 of  [ThirdFragment.kt]
