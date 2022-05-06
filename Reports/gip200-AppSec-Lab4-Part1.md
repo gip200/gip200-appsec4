@@ -4,7 +4,7 @@
 
 # George Papadopoulos - gip200@nyu.edu
 
-LAB 3, Part 2
+LAB 4, Part 1 (Only Part)
 -------------
 
 # **Part 1: The Only Part**
@@ -158,9 +158,9 @@ There exists a vulnerability in the REST API that allows users to use GiftCards 
 **Task 3a (20pts).** 
 *Review the API endpoints called by the application, and exploit this authorization issue. Explain the underlying vulnerability with as much details as you find appropriate. Document the process and explain the risk(s) in the context of the application's purpose and audience.
 You can start looking for this vulnerability in the following files:*
-1.  [UseCard.kt]
-2.  [CardInterface.kt]
-*Hint:  It may be useful to proxy your Android traffic through an HTTP proxy, such as Burp Suite, to help identify the vulnerable API endpoint, narrowing down from those found in the  [CardInterface.kt]*
+*1.  [UseCard.kt]
+2.  [CardInterface.kt]*
+
 
 
 
