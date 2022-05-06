@@ -153,7 +153,7 @@ on line 40
 
 ----------
 
-There exists a vulnerability in the REST API that allows users to use GiftCards that do not belong to them.
+*There exists a vulnerability in the REST API that allows users to use GiftCards that do not belong to them.*
 
 **Task 3a (20pts).** 
 *Review the API endpoints called by the application, and exploit this authorization issue. Explain the underlying vulnerability with as much details as you find appropriate. Document the process and explain the risk(s) in the context of the application's purpose and audience.
@@ -187,7 +187,7 @@ Additionally, the giftcard should be associated with the user account so that wh
 
 ----------
 
-In this section your goal is to remove all privacy invasive code. For each sub-task, describe the exact source code modified/removed, and explain your reason for the modification.
+*In this section your goal is to remove all privacy invasive code. For each sub-task, describe the exact source code modified/removed, and explain your reason for the modification.*
 
 ***Task 4a.**  Remove all unnecessary permissions from the mobile application, leaving only those necessary for the application to function and serve its purpose. For each, explain which files were affected, giving a snippet of the offending source code, along with a reason for the removal of each distinct code block. _Hint:_  The Android Manifest is not the only place an application can request permissions.**
 
@@ -397,6 +397,5 @@ Interrogating the files noted, we find references to sensors in **CardScrollingA
 
 
 ## END OF LAB 4, Part 1 SUBMISSION
-
 
 
