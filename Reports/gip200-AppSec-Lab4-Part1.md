@@ -164,17 +164,18 @@ You can start looking for this vulnerability in the following files:*
 
 
 
-There's a vulnerability in the REST API that allows users to use GiftCards that do not belong to them. To use a card, the application make a PUT request to the REST API endpoint https://nyuappsec.com/api/use/{card_number} and only check for an Authorization header with a valid access token. Because of this flaw, a user with a valid access token iterate through the card_number (which is an integer) to use the cards that don't belong to them.
+There seems a vulnerability in the REST API that allows users to use GiftCards that do not belong to them. To use a card, the application make a PUT request to the REST API endpoint https://nyuappsec.com/api/use/{card_number} and only check for an Authorization header with a valid access token. Because of this flaw, a user with a valid access token iterate through the card_number (which is an integer) to use the cards that don't belong to them. Users can exploit the use of cards by brute forcing the use of alternate, unowned card ids.
 
     @PUT("/api/use/{card_number}")
     fun useCard(@Path("card_number") card_number: Int?, @Header("Authorization") authHeader: String): Call<Card?>
 
 
-
+![Image](https://github.com/gip200/gip200-appsec4/blob/master/Reports/Artifacts/gip200-appsec4-3a.jpg)
 
 
 
 ***Task 3b (10pts).**  Think about how the application is telling the server which card to use and how that may be an issue. Without actually doing so, describe how you would recommend to go about fixing this issue, with as much detail as you find necessary to convey your recommendation(s). Ensure to distinguish your recommendation(s) as applicable to either, the Android mobile application source code or the remote REST API server and/or source code.*
+
 
 The way to remediate this issue is to remediate the source code to make the card_number impossible or difficult to game/guess. 
 
@@ -186,27 +187,216 @@ Additionally, the giftcard should be associated with the user account so that wh
 
 ----------
 
-Many modern Android applications collect large amounts of privacy-invasive metrics about their users. This is very problematic, since many users carry their devices at all times, and are unaware of the implications of granting a permission.
+In this section your goal is to remove all privacy invasive code. For each sub-task, describe the exact source code modified/removed, and explain your reason for the modification.
 
-In this section your goal is to remove all privacy invasive code. This is done by removing all metric collecting code, all areas that needlessly interact with sensors, and all permissions that are not needed for the basic functionality of the application (buying, browsing, and using gift cards).
+***Task 4a.**  Remove all unnecessary permissions from the mobile application, leaving only those necessary for the application to function and serve its purpose. For each, explain which files were affected, giving a snippet of the offending source code, along with a reason for the removal of each distinct code block. _Hint:_  The Android Manifest is not the only place an application can request permissions.**
 
-For each sub-task, describe the exact source code modified/removed, and explain your reason for the modification. However, you can read more about the Android Manifest in the Android documentation, at  [https://developer.android.com/guide/topics/manifest/manifest-intro](https://developer.android.com/guide/topics/manifest/manifest-intro).
 
-**Task 4a.**  Remove all unnecessary permissions from the mobile application, leaving only those necessary for the application to function and serve its purpose. For each, explain which files were affected, giving a snippet of the offending source code, along with a reason for the removal of each distinct code block.
+Looking at **AndroidManifest.xml**, we comment/remove the following (making sure not to remove the network access and internet permissions!):
 
-> _Hint:_  The Android Manifest is not the only place an application can request permissions.
 
-**Task 4b.**  Remove all unnecessary collections of metrics from the mobile application, leaving only those necessary for the application to function and serve its purpose. For each, explain which files were affected, giving a snippet of the offending source code, along with a reason for the removal of each distinct code block. If you left any, explain how they each necessarily support the application.
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION"/>
 
-> _Hint:_  It may be useful to proxy your Android traffic through an HTTP proxy, such as Burp Suite, to help identify the metrics being collected by the mobile app and correlate back to the offending source code.
 
-**Task 4c.**  Remove all unnecessary sensor interactions from the mobile application, leaving only those necessary for the application to function and serve its purpose. For each, explain which files were affected, giving a snippet of the offending source code, along with a reason for the removal of each distinct code block. If you left any, explain how they each necessarily support the application.
+![Image](https://github.com/gip200/gip200-appsec4/blob/master/Reports/Artifacts/gip200-appsec4-4a.jpg)
 
-1.  [AndroidManifest.xml](https://github.com/gip200/AppSec4/blob/master/GiftCardSite/app/src/main/AndroidManifest.xml)
-2.  [UserInfo.kt](https://github.com/gip200/AppSec4/blob/master/GiftCardSite/app/src/main/java/com/example/giftcardsite/api/service/UserInfo.kt)
-3.  [CardScrollingActivity.kt](https://github.com/gip200/AppSec4/blob/master/GiftCardSite/app/src/main/java/com/example/giftcardsite/CardScrollingActivity.kt)
-4.  [ProductScrollingActivity.kt](https://github.com/gip200/AppSec4/blob/master/GiftCardSite/app/src/main/java/com/example/giftcardsite/ProductScrollingActivity.kt)
+
+
+***Task 4b.**  Remove all unnecessary collections of metrics from the mobile application, leaving only those necessary for the application to function and serve its purpose. For each, explain which files were affected, giving a snippet of the offending source code, along with a reason for the removal of each distinct code block. If you left any, explain how they each necessarily support the application.*
+
+Interrogating the files, we find references to /api/metrics in the file  **UserInfo.kt**. We comment out the following code.
+
+        interface UserInfo {  
+        // @POST("/api/metrics")  
+        // fun postInfo(@Body info: UserInfoContainer, @Header("Authorization") token: String?) : Call<User>
+        }
+
+![Image](https://github.com/gip200/gip200-appsec4/blob/master/Reports/Artifacts/gip200-appsec4-4b.jpg)
+
+
+***Task 4c.**  Remove all unnecessary sensor interactions from the mobile application, leaving only those necessary for the application to function and serve its purpose. For each, explain which files were affected, giving a snippet of the offending source code, along with a reason for the removal of each distinct code block. If you left any, explain how they each necessarily support the application.*
+
+*1.  [AndroidManifest.xml]
+2.  [UserInfo.kt]
+3.  [CardScrollingActivity.kt]
+4.  [ProductScrollingActivity.kt]*
+
+
+Interrogating the files noted, we find references to sensors in **CardScrollingActivity.kt** and **ProductScrollingActivity.kt** calling all manor of sensors such as accelerometer and GPS and so on. We comment out the following code.
+
+**CardscrollingActivity.kt**
+
+    override fun onCreate(savedInstanceState: Bundle?) {  
+        super.onCreate(savedInstanceState)  
+        //val locationPermissionCode = 2  
+     //var locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager //if ((ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) { //    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationPermissionCode) //} //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5f, this) //sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager //mAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    .
+    .
+    .
+    //override fun onLocationChanged(location: Location) {  
+     //var userInfoContainer = UserInfoContainer(location, null, loggedInUser?.token) //var builder: Retrofit.Builder = Retrofit.Builder().baseUrl("https://nyuappsec.com").addConverterFactory( //    GsonConverterFactory.create()) //var retrofit: Retrofit = builder.build() //var client: UserInfo = retrofit.create(UserInfo::class.java) //client.postInfo(userInfoContainer, loggedInUser?.token)?.enqueue(object: Callback<User?> { //    override fun onFailure(call: Call<User?>, t: Throwable) { //         Log.d("Metric Failure", "Metric Failure in onFailure") //         Log.d("Metric Failure", t.message.toString())
+    
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {  
+        // Inflate the menu; this adds items to the action bar if it is present.  
+      menuInflater.inflate(R.menu.menu_main, menu)  
+        return true  
+    }  
+    //override fun onLocationChanged(location: Location) {  
+     //var userInfoContainer = UserInfoContainer(location, null, loggedInUser?.token) //var builder: Retrofit.Builder = Retrofit.Builder().baseUrl("https://nyuappsec.com").addConverterFactory( //    GsonConverterFactory.create()) //var retrofit: Retrofit = builder.build() //var client: UserInfo = retrofit.create(UserInfo::class.java) //client.postInfo(userInfoContainer, loggedInUser?.token)?.enqueue(object: Callback<User?> { //    override fun onFailure(call: Call<User?>, t: Throwable) { //         Log.d("Metric Failure", "Metric Failure in onFailure") //         Log.d("Metric Failure", t.message.toString())  
+      }  
+      
+            //override fun onResponse(call: Call<User?>, response: Response<User?>) {  
+     //    if (!response.isSuccessful) { //        Log.d("Metric Failure", "Metric failure. Yay.") //    } else { //        Log.d("Metric Success", "Metric success. Boo.") //        Log.d("Metric Success", "Token:${userInfoContainer.token}")  }  
+            }  
+        })  
+    }  
+      
+    //override fun onSensorChanged(event: SensorEvent?) {  
+    //    if (event != null) {  
+    //        var userInfoContainer = UserInfoContainer(null, event.values[0].toString(), loggedInUser?.token)  
+    //        var builder: Retrofit.Builder = Retrofit.Builder().baseUrl("http://nyuappsec.com").addConverterFactory(  
+    //            GsonConverterFactory.create())  
+    //        var retrofit: Retrofit = builder.build()  
+    //        var client: UserInfo = retrofit.create(UserInfo::class.java)  
+    //        client.postInfo(userInfoContainer, loggedInUser?.token)?.enqueue(object: Callback<User?> {  
+    //            override fun onFailure(call: Call<User?>, t: Throwable) {  
+    //                Log.d("Metric Failure", "Metric Failure in onFailure")  
+    //                Log.d("Metric Failure", t.message.toString())  
+      
+    //            }  
+      
+    //            override fun onResponse(call: Call<User?>, response: Response<User?>) {  
+    //                if (!response.isSuccessful) {  
+    //                    Log.d("Metric Failure", "Metric failure. Yay.")  
+    //                } else {  
+    //                    Log.d("Metric Success", "Metric success. Boo.")  
+    //                    Log.d("Metric Success", "Token:${userInfoContainer.token}")  
+    //                }  
+    //            }  
+    //        })  
+    //    }  
+    //}  
+      
+    //override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {  
+    //    return  
+    //}  
+      
+    //override fun onResume() {  
+    //    super.onResume()  
+    //    mAccel?.also { accel ->  
+    //        sensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_NORMAL)  
+    //    }  
+    //}  
+      
+    //override fun onPause() {  
+    //    super.onPause()  
+    //    sensorManager.unregisterListener(this)  
+    //}
+
+
+![Image](https://github.com/gip200/gip200-appsec4/blob/master/Reports/Artifacts/gip200-appsec4-4c1.jpg)
+
+**ProductScrollingActivity.kt**
+
+
+    //    private lateinit var sensorManager: SensorManager
+    //    private var mAccel : Sensor? = null
+    
+    //        val locationPermissionCode = 2
+    //        var locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    //        if ((ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+    //            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationPermissionCode)
+    //        }
+    //        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5f, this)
+    //        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    //        mAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+	.
+	.
+	.    
+    //    override fun onLocationChanged(location: Location) {
+    //        var userInfoContainer = UserInfoContainer(location, null, loggedInUser?.token)
+    //        var builder: Retrofit.Builder = Retrofit.Builder().baseUrl("https://appsecclass.report").addConverterFactory(
+    //            GsonConverterFactory.create())
+    //        var retrofit: Retrofit = builder.build()
+    //        var client: UserInfo = retrofit.create(UserInfo::class.java)
+    //
+    //        client.postInfo(userInfoContainer, loggedInUser?.token)?.enqueue(object: Callback<User?> {
+    //            override fun onFailure(call: Call<User?>, t: Throwable) {
+    //                Log.d("Metric Failure", "Metric Failure in onFailure")
+    //                Log.d("Metric Failure", t.message.toString())
+    //
+    //            }
+    //
+    //            override fun onResponse(call: Call<User?>, response: Response<User?>) {
+    //                if (!response.isSuccessful) {
+    //                    Log.d("Metric Failure", "Metric failure. Yay.")
+    //                } else {
+    //                    Log.d("Metric Success", "Metric success. Boo.")
+    //                    Log.d("Metric Success", "Token:${userInfoContainer.token}")
+    //                }
+    //            }
+    //        })
+    //    }
+    .
+    .
+    .
+    
+    //    override fun onSensorChanged(event: SensorEvent?) {
+    //        if (event != null) {
+    //            var userInfoContainer = UserInfoContainer(null, event.values[0].toString(), loggedInUser?.token)
+    //            var builder: Retrofit.Builder = Retrofit.Builder().baseUrl("https://appsecclass.report").addConverterFactory(
+    //                GsonConverterFactory.create())
+    //            var retrofit: Retrofit = builder.build()
+    //            var client: UserInfo = retrofit.create(UserInfo::class.java)
+    //            if (lastEvent == null) {
+    //                lastEvent = event.values[0].toString()
+    //            } else if (lastEvent == event.values[0].toString()) {
+    //                return
+    //            }
+    //            client.postInfo(userInfoContainer, loggedInUser?.token)?.enqueue(object: Callback<User?> {
+    //                override fun onFailure(call: Call<User?>, t: Throwable) {
+    //                    Log.d("Metric Failure", "Metric Failure in onFailure")
+    //                    Log.d("Metric Failure", t.message.toString())
+    //
+    //                }
+    //
+    //                override fun onResponse(call: Call<User?>, response: Response<User?>) {
+    //                    if (!response.isSuccessful) {
+    //                        Log.d("Metric Failure", "Metric failure. Yay.")
+    //                    } else {
+    //                        Log.d("Metric Success", "Metric success. Boo.")
+    //                        Log.d("Metric Success", "Token:${userInfoContainer.token}")
+    //                    }
+    //                }
+    //            })
+    //        }
+    //    }
+    .
+    .
+    .
+    //    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+    //        return
+    //    }
+    //
+    //    override fun onResume() {
+    //        super.onResume()
+    //        mAccel?.also { accel ->
+    //            sensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_NORMAL)
+    //        }
+    //    }
+    //
+    //    override fun onPause() {
+    //        super.onPause()
+    //        sensorManager.unregisterListener(this)
+    //    }
+
+![Image](https://github.com/gip200/gip200-appsec4/blob/master/Reports/Artifacts/gip200-appsec4-4c2.jpg)
+
 
 ## END OF LAB 4, Part 1 SUBMISSION
+
 
 
