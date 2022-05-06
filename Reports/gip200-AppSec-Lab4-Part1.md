@@ -22,7 +22,7 @@ When an application defines its target component in an intent, it is an explicit
 
 *2.  Which of the two types of Intents is more secure?*
 
-Explicit intents are more secure because they name the exact target of a message.
+Explicit intents are more secure because they name the exact target of a message. 
 
 Implicit intents are more flexibile, but less secure since they don't specify a target application to receive data. This poses a risk as any application can process the intent by using an intent filter, which might allow untrusted applications to obtain sensitive data.
 
@@ -32,6 +32,8 @@ Implicit intent is shown on lines 69 to 73 of SecondFragment.kt since it is call
 
     var intent = Intent(Intent.ACTION_VIEW)
 
+![Image](https://github.com/gip200/gip200-appsec4/blob/master/Reports/Artifacts/gip200-appsec4-1.1a3.jpg)
+    
 
 *4.  *What type of Intent is shown on lines 68 to 70 of  [ThirdFragment.kt]**
 
@@ -40,38 +42,49 @@ An explicit intent here, as a specific activity is called ("ProductScrollingActi
 `var intent = Intent(activity, ProductScrollingActivity::class.java)
 `
 
+![Image](https://github.com/gip200/gip200-appsec4/blob/master/Reports/Artifacts/gip200-appsec4-1.1a4.jpg)
+
+
 *5.  Between #3 and #4, which incorporates the more secure technique for implementing an Intent?*
 
-#4, the explicit intent would be more secure, calling specific fully qualified class would always be more secure by rule.
+Answer #4, the explicit intent would be more secure, calling specific fully qualified class would always be more secure by rule.
            
 ---
 **Task 1b (10pts): Switching Intents**
 
 *As the last question above hinted, one of these two Intents is not ideal. Fix the less secure Intent. Explain which file you modified, which lines of code you modified, and reason your modifications.*
 
-Here, an Explicit intent should be used in SecondFragment.kt. To fix this issue remove line 69 and replace with:
+Here, an Explicit intent should be used in SecondFragment.kt. To fix this issue remove line 69 and replace with the following, which is taken from the code of ThirdFragment.kt (lines 68):
 
     var intent = Intent(activity, ProductScrollingActivity::class.java)
 
+![Image](https://github.com/gip200/gip200-appsec4/blob/master/Reports/Artifacts/gip200-appsec4-1.1b.jpg)
+
+
 **Task 1c (10pts): Shutting Out The World**
 
-One way of securing applications from outside intents is to use permissions. There are different Android categorizes permissions, including install-time permissions, runtime permissions, and special permissions. Each permission's type indicates the scope of restricted data that your app can access, and the scope of restricted actions that your app can perform, when the system grants your app that permission.
+We can secure applications removing from outside  by removing intent filters in the `AndroidManifest.xml` file. We remove/comment all except MainActivity, so 4 out of 5 intent filters are rendered unused, like so:
 
-Here we use a signature protection level permission, such that the system grants only if the requesting application is signed with the same certificate as the application that declared the permission. If the certificates match, the system automatically grants the permission without notifying the user or asking for the user's explicit approval.
+    <activity  
+      android:name=".UseCard"  
+      android:label="@string/title_activity_use_card"  
+      android:theme="@style/Theme.GiftcardSite.NoActionBar">  
+        //<intent-filter>  
+        //<action android:name="android.intent.action.VIEW" />  
+      
+        //<category android:name="android.intent.category.DEFAULT" />  
+      
+        //<data android:mimeType="text/giftcards_use" />  
+        //    <data android:scheme="giftcard" />  
+        //    <data android:host="nyuappsec.com"/>  
+        //</intent-filter>  
+    </activity>
 
-We edit Giftcardsite/app/src/main/res/AndroidManifest.xml
+An intent filter is an expression in an app's manifest file that specifies the type of intents that the component would like to receive. For instance, by declaring an intent filter for an activity, you make it possible for other apps to directly start your activity with a certain kind of intent. Likewise, if you do  _not_  declare any intent filters for an activity, then it can be started only with an explicit intent. Implicit intents may ma
+tch contents of the _intent filters_  declared in the  [manifest file] of other apps on the device. If the intent matches an intent filter, the system starts that component and delivers it the  [Intent] object.  Therefore to ensure that the app is secure, always use an explicit intent when starting a  and do not declare intent filters for your services. 
 
-    # drawn from https://developer.android.com/guide/topics/manifest/permission-element
-    <!-- define permission -->
-    <permission
-        android:protectionLevel="signature"
-        android:name="com.example.giftcardsite.MYPERMISSION"/>
+![Image](https://github.com/gip200/gip200-appsec4/blob/master/Reports/Artifacts/gip200-appsec4-1.1c.jpg)
 
-        <activity
-            android:name=".ProductScrollingActivity"
-            android:label="@string/title_activity_scrolling"  
-            android:theme="@style/Theme.GiftcardSite.NoActionBar"
-            android:permission="com.example.giftcardsite.MYPERMISSION">
 ---
 
 ## Task 2 (10pts): Stoppin' the Eavesdroppin'
@@ -90,7 +103,6 @@ To ensure all communication with the REST API use HTTPs, we update the baseUrl i
 **3. CardScrollingActivity.kt** on line 59
 
 `var builder: Retrofit.Builder = Retrofit.Builder().baseUrl("https://nyuappsec.com").addConverterFactory(`
-
 
 on line 98
 `var builder: Retrofit.Builder = Retrofit.Builder().baseUrl("https://nyuappsec.com").addConverterFactory(`
@@ -130,6 +142,8 @@ on line 40
 **8.  [RecyclerViewAdapter.kt]** on line 23
 
 `Glide.with(context).asBitmap().load("https://nyuappsec.com/" + product.productImageLink).into(image)`
+
+![Image](https://github.com/gip200/gip200-appsec4/blob/master/Reports/Artifacts/gip200-appsec4-2.jpg)
                
 ---
 
@@ -141,12 +155,12 @@ on line 40
 
 There exists a vulnerability in the REST API that allows users to use GiftCards that do not belong to them.
 
-**Task 3a (20pts).**
+**Task 3a (20pts).** 
 *Review the API endpoints called by the application, and exploit this authorization issue. Explain the underlying vulnerability with as much details as you find appropriate. Document the process and explain the risk(s) in the context of the application's purpose and audience.
 You can start looking for this vulnerability in the following files:*
 1.  [UseCard.kt]
 2.  [CardInterface.kt]
-    *Hint:  It may be useful to proxy your Android traffic through an HTTP proxy, such as Burp Suite, to help identify the vulnerable API endpoint, narrowing down from those found in the  [CardInterface.kt]*
+*Hint:  It may be useful to proxy your Android traffic through an HTTP proxy, such as Burp Suite, to help identify the vulnerable API endpoint, narrowing down from those found in the  [CardInterface.kt]*
 
 
 
@@ -155,15 +169,18 @@ There's a vulnerability in the REST API that allows users to use GiftCards that 
     @PUT("/api/use/{card_number}")
     fun useCard(@Path("card_number") card_number: Int?, @Header("Authorization") authHeader: String): Call<Card?>
 
-Once way to fix this issue to make the card id (or card_number) harder to guess or iterate. An example would be to use a random string in instead of an int. When buying a giftcard, the card should be associated with a user account so that when a user used a card it can be validated that the user has permission to use the card instead of just relying on a valid access token.
 
 
 
 
-**Task 3b (10pts).**  Think about how the application is telling the server which card to use and how that may be an issue. Without actually doing so, describe how you would recommend to go about fixing this issue, with as much detail as you find necessary to convey your recommendation(s). Ensure to distinguish your recommendation(s) as applicable to either, the Android mobile application source code or the remote REST API server and/or source code.
 
+***Task 3b (10pts).**  Think about how the application is telling the server which card to use and how that may be an issue. Without actually doing so, describe how you would recommend to go about fixing this issue, with as much detail as you find necessary to convey your recommendation(s). Ensure to distinguish your recommendation(s) as applicable to either, the Android mobile application source code or the remote REST API server and/or source code.*
 
+The way to remediate this issue is to remediate the source code to make the card_number impossible or difficult to game/guess. 
 
+For example, it would be better to come up with a way to provide a randomized number, not a linear number in lieu of a simple linear incrementing integer.  
+
+Additionally, the giftcard should be associated with the user account so that when a user uses the card it can be cross validated that the user has permission to use the card instead of just relying on a valid access token.
 
 ## Task 4 (30pts): Please Hold... Your Privacy Is Very Important To Us!
 
